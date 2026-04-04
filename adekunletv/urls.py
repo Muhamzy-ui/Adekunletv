@@ -7,7 +7,20 @@ from rest_framework_simplejwt.views import (
 )
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from django.http import JsonResponse
+
+def home_api(request):
+    return JsonResponse({
+        "status": "Adekunle TV API Live",
+        "message": "Welcome to Nigeria's #1 Jersey Store API",
+        "version": "1.0.0",
+        "docs": "/api/docs/"
+    })
+
 urlpatterns = [
+    # Root
+    path('', home_api, name='api_root'),
+
     # Django admin
     path('admin/', admin.site.urls),
 

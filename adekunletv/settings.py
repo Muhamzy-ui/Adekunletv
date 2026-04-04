@@ -16,6 +16,8 @@ DEBUG       = config('DEBUG', default=True, cast=bool)
 
 # Default: localhost, 127.0.0.1 + add Render URL in prod
 ALLOWED_HOSTS = ['*']
+if not DEBUG:
+    ALLOWED_HOSTS = ['adekunletv.onrender.com', '.onrender.com', 'localhost', '127.0.0.1']
 
 # ── Apps ──────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -125,6 +127,18 @@ else:
 # ── CORS ──────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+# ── Production Security & Proxy ──────────────────────────────
+# Instruct Django to trust the SSL header from Render's proxy
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+CSRF_TRUSTED_ORIGINS = [
+    'https://adekunletv.onrender.com',
+    'https://*.onrender.com',
+]
+# Ensure cookies are only sent over HTTPS in production
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # ── REST Framework ────────────────────────────────────────────
 REST_FRAMEWORK = {
