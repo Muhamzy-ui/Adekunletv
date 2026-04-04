@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 130">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0.25"/>
+      </linearGradient>
+    </defs>
+    <!-- Base Body -->
+    <path d="M20 35 L8 55 L28 60 L28 120 Q60 125 92 120 L92 60 L112 55 L100 35 L80 28 Q60 15 40 28 Z" fill="#E8001E" stroke="rgba(0,0,0,0.1)" stroke-width="1.5"/>
+    
+    <!-- Stripes -->
+    
+    
+    
+    
+    <!-- Sleeves -->
+    <path d="M20 35 L8 55 L28 60 Z" fill="#E8001E" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+    <path d="M100 35 L112 55 L92 60 Z" fill="#E8001E" stroke="rgba(0,0,0,0.1)" stroke-width="1"/>
+    
+    <!-- Collar inside -->
+    <path d="M42 28 Q60 40 78 28 Q72 18 60 16 Q48 18 42 28 Z" fill="rgba(0,0,0,0.6)"/>
+    
+    <!-- Highlights -->
+    <path d="M20 35 L8 55 L28 60 L28 120 Q60 125 92 120 L92 60 L112 55 L100 35 L80 28 Q60 15 40 28 Z" fill="url(#g)" pointer-events="none"/>
+  </svg>
