@@ -157,7 +157,7 @@ export const STATS = {
 }
 
 export const formatPrice = (amount) =>
-  `₦${Number(amount).toLocaleString('en-NG')}`
+  `\u20A6${Number(amount).toLocaleString('en-NG')}`
 
 export const getStockStatus = (sizes) => {
   const total = Object.values(sizes).reduce((a, b) => a + b, 0)

@@ -33,7 +33,7 @@ export default function Navbar() {
   }, [theme])
 
   return (
-    <>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 150 }}>
       {/* Ticker tape */}
       <div style={{
         background: 'var(--red)', overflow: 'hidden',
@@ -48,7 +48,7 @@ export default function Navbar() {
         }}>
           {Array(6).fill(null).map((_, i) => (
             <span key={i} style={{ padding: '0 40px' }}>
-              🏆 Free Delivery on Orders Above ₦30,000 &nbsp;•&nbsp;
+              🏆 Free Delivery on Orders Above &nbsp;\u20A630,000 &nbsp;•&nbsp;
               ⚽ Original Quality Jerseys &nbsp;•&nbsp;
               🇳🇬 Nationwide Delivery in 24–48hrs &nbsp;•&nbsp;
               💳 Pay with Card, Transfer or USSD
@@ -58,7 +58,6 @@ export default function Navbar() {
       </div>
 
       <nav style={{
-        position: 'sticky', top: 0, zIndex: 150,
         background: scrolled ? 'rgba(8,8,8,0.97)' : 'var(--black)',
         backdropFilter: scrolled ? 'blur(20px)' : 'none',
         borderBottom: `1px solid ${scrolled ? 'rgba(232,0,30,0.2)' : 'var(--border)'}`,
@@ -197,11 +196,11 @@ export default function Navbar() {
           onClick={e => e.stopPropagation()}
           style={{
             position: 'absolute', top: 0, bottom: 0, right: 0,
-            width: '85%', maxWidth: 320,
+            width: '70%', maxWidth: 280,
             background: 'var(--black)',
             backdropFilter: 'blur(32px) saturate(180%)',
             borderLeft: '1px solid var(--border)',
-            padding: '100px 40px 40px',
+            padding: '100px 30px 40px',
             transform: open ? 'translateX(0)' : 'translateX(100%)',
             transition: 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
             display: 'flex', flexDirection: 'column',
@@ -265,6 +264,6 @@ export default function Navbar() {
           .p-nav-btn { height: 36px !important; padding: 0 10px !important; border-radius: 6px !important; }
         }
       `}</style>
-    </>
+    </div>
   )
 }

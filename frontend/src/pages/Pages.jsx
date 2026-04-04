@@ -15,25 +15,28 @@ function ShopJerseyCard({ jersey }) {
   const { addItem } = useCart()
   const [size, setSize] = useState('')
   const stock = getStockStatus(jersey.sizes)
-  const avail = Object.entries(jersey.sizes).filter(([,v])=>v>0).map(([s])=>s)
+  const avail = Object.entries(jersey.sizes || {}).filter(([,v])=>v>0).map(([s])=>s)
   const hasOld = !!jersey.old_price
+
+  // Fix image source: favor primary_image, then images[0].image, then images[0]
+  const imageSrc = jersey.primary_image || (jersey.images?.[0]?.image) || (typeof jersey.images?.[0] === 'string' ? jersey.images[0] : null)
 
   return (
     <div style={{background:'var(--dark2)',border:'1px solid var(--border)',borderRadius:8,overflow:'hidden',display:'flex',flexDirection:'column',transition:'all 0.3s'}}
       onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(232,0,30,0.4)';e.currentTarget.style.transform='translateY(-6px)';e.currentTarget.style.boxShadow='0 20px 50px rgba(0,0,0,0.6)'}}
       onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='none'}}>
       {/* Image */}
-      <Link to={`/shop/${jersey.slug}`} style={{height:200,background:'var(--dark3)',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',flexDirection:'column',gap:8,textDecoration:'none'}}>
-        {jersey.images?.[0]
-          ? <img src={jersey.images[0]} alt={jersey.title} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+      <Link to={`/shop/${jersey.slug}`} style={{height:240,background:'var(--dark3)',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',flexDirection:'column',gap:8,textDecoration:'none',overflow:'hidden'}}>
+        {imageSrc
+          ? <img src={imageSrc} alt={jersey.title} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
           : <>
               <svg viewBox="0 0 120 130" style={{width:90,filter:'drop-shadow(0 4px 16px rgba(232,0,30,0.2))'}}>
                 <path d="M20 35 L8 55 L28 60 L28 120 L92 120 L92 60 L112 55 L100 35 L80 28 Q60 15 40 28 Z"
-                  fill={(typeof jersey.club === 'object' ? jersey.club.name : jersey.club)==='Nigeria'?'#008751':(typeof jersey.club === 'object' ? jersey.club.name : jersey.club).includes('United')||(typeof jersey.club === 'object' ? jersey.club.name : jersey.club)==='Liverpool'||(typeof jersey.club === 'object' ? jersey.club.name : jersey.club)==='Arsenal'?'#C8102E':(typeof jersey.club === 'object' ? jersey.club.name : jersey.club)==='Chelsea'||(typeof jersey.club === 'object' ? jersey.club.name : jersey.club)==='Man City'?'#034694':'#333'}
+                  fill={(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))==='Nigeria'?'#008751':(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))?.includes('United')||(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))==='Liverpool'||(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))==='Arsenal'?'#C8102E':(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))==='Chelsea'||(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))==='Man City'?'#034694':'#333'}
                   stroke="rgba(255,255,255,0.1)" strokeWidth="1"/>
                 <path d="M42 28 Q60 40 78 28 Q72 18 60 16 Q48 18 42 28 Z" fill="rgba(0,0,0,0.4)"/>
               </svg>
-              <span style={{fontSize:9,color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-display)',letterSpacing:'2px',textTransform:'uppercase'}}>{typeof jersey.club === 'object' ? jersey.club.name : jersey.club}</span>
+              <span style={{fontSize:9,color:'rgba(255,255,255,0.25)',fontFamily:'var(--font-display)',letterSpacing:'2px',textTransform:'uppercase'}}>{typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)}</span>
             </>
         }
         <div style={{position:'absolute',top:10,left:10,display:'flex',gap:6,flexDirection:'column'}}>
@@ -45,8 +48,8 @@ function ShopJerseyCard({ jersey }) {
       </Link>
       {/* Body */}
       <div style={{padding:16,flex:1,display:'flex',flexDirection:'column'}}>
-        <span style={{fontSize:9,color:'var(--red)',fontFamily:'var(--font-display)',letterSpacing:'2px',textTransform:'uppercase',marginBottom:4}}>{typeof jersey.club === 'object' ? jersey.club.name : jersey.club}</span>
-        <Link to={`/shop/${jersey.slug}`} style={{fontFamily:'var(--font-display)',fontSize:16,fontWeight:800,color:'var(--white)',textDecoration:'none',textTransform:'uppercase',letterSpacing:'0.5px',lineHeight:1.2,marginBottom:8,transition:'color 0.2s'}}
+        <span style={{fontSize:9,color:'var(--red)',fontFamily:'var(--font-display)',letterSpacing:'2px',textTransform:'uppercase',marginBottom:4}}>{typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)}</span>
+        <Link to={`/shop/${jersey.slug}`} style={{fontFamily:'var(--font-display)',fontSize:16,fontWeight:800,color:'var(--white)',textDecoration:'none',textTransform:'uppercase',letterSpacing:'0.5px',lineHeight:1.2,marginBottom:8,transition:'color 0.2s',display:'block'}}
           onMouseEnter={e=>e.target.style.color='var(--red)'}
           onMouseLeave={e=>e.target.style.color='var(--white)'}>
           {jersey.title}
@@ -55,7 +58,7 @@ function ShopJerseyCard({ jersey }) {
           <div style={{display:'flex',gap:2,color:'var(--gold)'}}>
             {[...Array(5)].map((_,i)=><FiStar key={i} size={10} fill={i<Math.floor(jersey.rating)?'currentColor':'none'}/>)}
           </div>
-          <span style={{fontSize:10,color:'var(--muted)'}}>({jersey.reviews})</span>
+          <span style={{fontSize:10,color:'var(--muted)'}}>({jersey.review_count || 0})</span>
           <span className={stock.cls} style={{fontSize:10,marginLeft:'auto'}}>{stock.label}</span>
         </div>
         {/* Sizes */}
@@ -64,7 +67,7 @@ function ShopJerseyCard({ jersey }) {
             <button key={sz}
               onClick={()=>setSize(sz)}
               className={`size-btn ${size===sz?'active':''} ${!avail.includes(sz)?'disabled':''}`}
-              style={{minWidth:32,height:30,fontSize:10}}>
+              style={{minWidth:32,height:30,fontSize:10,pointerEvents:avail.includes(sz)?'auto':'none'}}>
               {sz}
             </button>
           ))}
@@ -79,7 +82,7 @@ function ShopJerseyCard({ jersey }) {
               to={`/shop/${jersey.slug}`}
               className="btn btn-outline btn-sm"
               style={{flex:1,justifyContent:'center',fontSize:10,padding:'8px 0'}}>
-              View Details
+              Details
             </Link>
             <button
               onClick={()=>{
@@ -157,7 +160,12 @@ export function Shop() {
     return j
   },[search,club,cat,sort,minP,maxP])
 
-  const SideLabel = ({children})=><p style={{fontSize:10,fontFamily:'var(--font-display)',fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'var(--red)',marginBottom:10}}>{children}</p>
+  if (loading) return (
+    <div style={{ height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
+      <div className="loader" />
+      <p style={{ fontFamily: 'var(--font-display)', fontSize: 14, letterSpacing: '2px', color: 'var(--muted)', textTransform: 'uppercase' }}>Loading Store...</p>
+    </div>
+  )
 
   return (
     <div style={{minHeight:'100vh'}}>
@@ -248,8 +256,8 @@ export function Shop() {
               <span style={{fontSize:13,color:'var(--muted)'}}><span style={{color:'var(--red)',fontWeight:600}}>{filtered.length}</span> jerseys</span>
               <select value={sort} onChange={e=>setSort(e.target.value)} className="form-select" style={{width:180, padding: '10px 14px', fontSize: 13}}>
                 <option value="newest">Newest First</option>
-                <option value="price_asc">Price: Low -> High</option>
-                <option value="price_desc">Price: High -> Low</option>
+                <option value="price_asc">{'Price: Low \u2192 High'}</option>
+                <option value="price_desc">{'Price: High \u2192 Low'}</option>
                 <option value="popular">Most Popular</option>
               </select>
             </div>
@@ -257,7 +265,7 @@ export function Shop() {
 
           {filtered.length===0
             ? <div style={{textAlign:'center',padding:'80px 20px', background: 'var(--dark2)', borderRadius: 12, border: '1px dashed var(--border)'}}>
-                <div style={{fontSize:64,marginBottom:16}}>🔍</div>
+                <div style={{fontSize:64,marginBottom:16}}>ðŸ”</div>
                 <h3 style={{fontFamily:'var(--font-display)',fontSize:24,textTransform:'uppercase',marginBottom:12}}>No Jerseys Found</h3>
                 <p style={{color:'var(--muted)',marginBottom:24, fontSize: 14}}>Try changing your filters or search term.</p>
                 <button onClick={()=>{setClub('All');setCat('All');setMinP('');setMaxP('');setSearch('')}} className="btn btn-red btn-sm">Clear Filters</button>
@@ -306,8 +314,8 @@ export function Shop() {
                 <SideLabel>Sort By</SideLabel>
                 <select value={sort} onChange={e=>{setSort(e.target.value); setShowFilter(false)}} className="form-select" style={{ width: '100%', padding: '12px' }}>
                   <option value="newest">Newest First</option>
-                  <option value="price_asc">Price: Low -> High</option>
-                  <option value="price_desc">Price: High -> Low</option>
+                  <option value="price_asc">{'Price: Low \u2192 High'}</option>
+                  <option value="price_desc">{'Price: High \u2192 Low'}</option>
                 </select>
               </div>
 
@@ -326,7 +334,7 @@ export function Shop() {
   )
 }
 
-// â”€â”€ JERSEY DETAIL PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ JERSEY DETAIL PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 export function JerseyDetail() {
   const { slug } = useParams()
@@ -369,24 +377,27 @@ export function JerseyDetail() {
           {/* Images */}
           <div>
             <div style={{height:480,background:'var(--dark2)',border:'1px solid var(--border)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:12,position:'relative',overflow:'hidden'}}>
-              {jersey.images?.[0]
-                ? <img src={jersey.images[0]} alt={jersey.title} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+              { (jersey.images?.[activeImg]?.image || jersey.images?.[activeImg]?.url || (typeof jersey.images?.[activeImg] === 'string' ? jersey.images?.[activeImg] : null) || jersey.primary_image)
+                ? <img src={jersey.images?.[activeImg]?.image || jersey.images?.[activeImg]?.url || (typeof jersey.images?.[activeImg] === 'string' ? jersey.images[activeImg] : jersey.primary_image)} alt={jersey.title} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
                 : <svg viewBox="0 0 200 220" style={{width:'55%',filter:'drop-shadow(0 16px 40px rgba(232,0,30,0.3))'}}>
                     <path d="M30 55 L10 90 L40 98 L40 200 L160 200 L160 98 L190 90 L170 55 L135 44 Q100 25 65 44 Z"
-                      fill={(typeof jersey.club === 'object' ? jersey.club.name : jersey.club) === 'Nigeria' ? '#008751' : (typeof jersey.club === 'object' ? jersey.club.name : jersey.club).includes('United') || (typeof jersey.club === 'object' ? jersey.club.name : jersey.club) === 'Liverpool' ? '#C8102E' : (typeof jersey.club === 'object' ? jersey.club.name : jersey.club) === 'Chelsea' ? '#034694' : '#444'}
+                      fill={(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)) === 'Nigeria' ? '#008751' : (typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))?.includes('United') || (typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)) === 'Liverpool' ? '#C8102E' : (typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)) === 'Chelsea' ? '#034694' : '#444'}
                       stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
                     <path d="M68 44 Q100 65 132 44 Q122 28 100 24 Q78 28 68 44 Z" fill="rgba(0,0,0,0.5)"/>
-                    {(typeof jersey.club === 'object' ? jersey.club.name : jersey.club) === 'Nigeria' && <rect x="55" y="44" width="90" height="156" fill="white" opacity="0.08"/>}
-                    <text x="100" y="130" textAnchor="middle" fontSize="24" fontWeight="900" fontFamily="Barlow Condensed" fill="rgba(255,255,255,0.2)" letterSpacing="2">{(typeof jersey.club === 'object' ? jersey.club.name : jersey.club).split(' ').map(w=>w[0]).join('').slice(0,3)}</text>
+                    {(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)) === 'Nigeria' && <rect x="55" y="44" width="90" height="156" fill="white" opacity="0.08"/>}
+                    <text x="100" y="130" textAnchor="middle" fontSize="24" fontWeight="900" fontFamily="Barlow Condensed" fill="rgba(255,255,255,0.2)" letterSpacing="2">{(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))?.split(' ').map(w=>w[0]).join('').slice(0,3)}</text>
                   </svg>
               }
               {hasOld && <div style={{position:'absolute',top:16,right:16}}><span className="badge badge-gold">SALE -{Math.round((1-jersey.price/jersey.old_price)*100)}%</span></div>}
             </div>
             {/* Thumbnails */}
-            <div style={{display:'flex',gap:10}}>
-              {[0,1,2,3].map(i=>(
-                <div key={i} onClick={()=>setActiveImg(i)} style={{flex:1,height:80,background:'var(--dark2)',border:`1px solid ${activeImg===i?'var(--red)':'var(--border)'}`,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:24,transition:'border-color .2s'}}>
-                  
+            <div style={{display:'flex',gap:10,overflowX:'auto',paddingBottom:5}}>
+              { (jersey.images && jersey.images.length > 0 ? jersey.images : [jersey.primary_image]).map((img, i)=>(
+                <div key={i} onClick={()=>setActiveImg(i)} style={{flexShrink:0,width:80,height:80,background:'var(--dark2)',border:`1px solid ${activeImg===i?'var(--red)':'var(--border)'}`,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',overflow:'hidden',transition:'border-color .2s'}}>
+                    { (img?.image || img?.url || (typeof img === 'string' ? img : null)) 
+                      ? <img src={img?.image || img?.url || img} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                      : '👕'
+                    }
                 </div>
               ))}
             </div>
@@ -433,7 +444,7 @@ export function JerseyDetail() {
             <div style={{marginBottom:24}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
                 <p style={{fontSize:11,fontFamily:'var(--font-display)',fontWeight:700,letterSpacing:'2px',textTransform:'uppercase',color:'var(--muted)'}}>Select Size</p>
-                {selectedSize && <span style={{fontSize:12,color:'var(--green-stock)',fontWeight:600}}>✓ {selectedSize} selected</span>}
+                {selectedSize && <span style={{fontSize:12,color:'var(--green-stock)',fontWeight:600}}>âœ“ {selectedSize} selected</span>}
               </div>
               <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
                 {Object.entries(jersey.sizes).map(([sz,stock])=>(
@@ -496,7 +507,7 @@ export function JerseyDetail() {
           {jersey.features && (
             <div style={{marginTop:20,display:'flex',flexWrap:'wrap',gap:8}}>
               {jersey.features?.map(f=>(
-                <span key={f} style={{fontSize:12,color:'var(--muted)',background:'var(--dark3)',border:'1px solid var(--border)',borderRadius:3,padding:'4px 10px'}}>✓ {f}</span>
+                <span key={f} style={{fontSize:12,color:'var(--muted)',background:'var(--dark3)',border:'1px solid var(--border)',borderRadius:3,padding:'4px 10px'}}>âœ“ {f}</span>
               ))}
             </div>
           )}
@@ -517,7 +528,7 @@ export function JerseyDetail() {
   )
 }
 
-// â”€â”€ CART PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ CART PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export function Cart() {
   const { items, removeItem, updateQty, total, count } = useCart()
 
@@ -547,7 +558,12 @@ export function Cart() {
             {items.map(item=>(
               <div key={`${item.id}-${item.size}`} className="cart-item-row" style={{background:'var(--dark2)',border:'1px solid var(--border)',borderRadius:10,padding:20,display:'flex',gap:20,alignItems:'center',position:'relative'}}>
                 {/* Photo */}
-                <div style={{width:80,height:80,background:'var(--dark3)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32,flexShrink:0,border:'1px solid var(--border)'}}></div>
+                <div style={{width:80,height:80,background:'var(--dark3)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32,flexShrink:0,border:'1px solid var(--border)',overflow:'hidden'}}>
+                    {(item.primary_image || item.images?.[0]?.image || (typeof item.images?.[0] === 'string' ? item.images[0] : null)) 
+                      ? <img src={item.primary_image || item.images?.[0]?.image || item.images[0]} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                      : '👕'
+                    }
+                </div>
                 
                 {/* Details */}
                 <div style={{flex:1, minWidth:0}}>
@@ -621,7 +637,7 @@ export function Cart() {
   )
 }
 
-// â”€â”€ CHECKOUT PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ CHECKOUT PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export function Checkout() {
   const { items, total, clearCart } = useCart()
   const navigate = useNavigate()
@@ -771,7 +787,7 @@ export function Checkout() {
   )
 }
 
-// â”€â”€ ORDER SUCCESS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ ORDER SUCCESS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export function OrderSuccess() {
   return (
     <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
@@ -797,7 +813,7 @@ export function OrderSuccess() {
   )
 }
 
-// â”€â”€ ABOUT PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ ABOUT PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export function About() {
   return (
     <div style={{minHeight:'100vh'}}>
@@ -805,7 +821,7 @@ export function About() {
         <div className="container">
           <p className="section-eyebrow">The Story</p>
           <h1 className="section-title">About<br/><span className="red-gradient">Adekunle TV</span></h1>
-          <p className="section-sub">Nigeria's most trusted voice for football and jerseys â€” talking the beautiful game in Yoruba for 600,000 fans.</p>
+          <p className="section-sub">Nigeria's most trusted voice for football and jerseys Ã¢â‚¬â€ talking the beautiful game in Yoruba for 600,000 fans.</p>
         </div>
       </div>
       <section className="section">
@@ -833,9 +849,9 @@ export function About() {
               </h2>
               <div style={{height:2,width:60,background:'var(--red)',margin:'20px 0'}}/>
               {[
-                "Adekunle TV started with a simple idea â€” talk about football the way Nigerians actually talk about it. In Yoruba. With passion, humour and zero filter.",
+                "Adekunle TV started with a simple idea Ã¢â‚¬â€ talk about football the way Nigerians actually talk about it. In Yoruba. With passion, humour and zero filter.",
                 "With 608,000 followers and 67 million likes on TikTok, Adekunle TV has become the go-to destination for football fans across Nigeria who want real analysis in their own language.",
-                "The jersey store was born from the same energy. Our followers kept asking â€” 'where do you get your jerseys?' So we built a proper store. Original quality. Affordable prices. Delivered to your door anywhere in Nigeria.",
+                "The jersey store was born from the same energy. Our followers kept asking Ã¢â‚¬â€ 'where do you get your jerseys?' So we built a proper store. Original quality. Affordable prices. Delivered to your door anywhere in Nigeria.",
               ].map((p,i)=>(
                 <p key={i} style={{fontSize:15,color:'var(--muted)',lineHeight:1.8,marginBottom:16,fontWeight:300}}>{p}</p>
               ))}
@@ -850,7 +866,7 @@ export function About() {
   )
 }
 
-// â”€â”€ CONTACT PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ CONTACT PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export function Contact() {
   const [form,setForm]=useState({name:'',phone:'',message:''})
   const [sent,setSent]=useState(false)
@@ -873,9 +889,9 @@ export function Contact() {
                 We're Here<br/><span className="red-gradient">For You</span>
               </h2>
               {[
-                {icon:'ðŸ’¬',label:'WhatsApp',val:'Chat with us now â€” fastest response',href:'https://wa.me/2348000000000'},
-                {icon:'ðŸ“±',label:'TikTok',val:'@adekunle_tv5 â€” DM us anytime',href:'https://tiktok.com/@adekunle_tv5'},
-                {icon:'ðŸ“§',label:'Email',val:'adekunletv@gmail.com',href:'mailto:adekunletv@gmail.com'},
+                {icon:'Ã°Å¸â€™Â¬',label:'WhatsApp',val:'Chat with us now Ã¢â‚¬â€ fastest response',href:'https://wa.me/2348000000000'},
+                {icon:'Ã°Å¸â€œÂ±',label:'TikTok',val:'@adekunle_tv5 Ã¢â‚¬â€ DM us anytime',href:'https://tiktok.com/@adekunle_tv5'},
+                {icon:'Ã°Å¸â€œÂ§',label:'Email',val:'adekunletv@gmail.com',href:'mailto:adekunletv@gmail.com'},
               ].map(({icon,label,val,href})=>(
                 <a key={label} href={href} target="_blank" rel="noopener noreferrer" style={{display:'flex',gap:16,marginBottom:24,textDecoration:'none'}}>
                   <div style={{width:48,height:48,borderRadius:6,background:'var(--red-subtle)',border:'1px solid var(--border-red)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}}>{icon}</div>
@@ -891,7 +907,7 @@ export function Contact() {
               <div style={{padding:'clamp(24px,4vw,40px)'}}>
                 {sent ? (
                   <div style={{textAlign:'center',padding:'40px 0'}}>
-                    <div style={{fontSize:56,marginBottom:16}}>âœ…</div>
+                    <div style={{fontSize:56,marginBottom:16}}>Ã¢Å“â€¦</div>
                     <h3 style={{fontFamily:'var(--font-display)',fontSize:24,textTransform:'uppercase',marginBottom:12}}>Message Sent!</h3>
                     <p style={{color:'var(--muted)',fontWeight:300}}>We'll reply on WhatsApp within 30 minutes.</p>
                   </div>
@@ -912,30 +928,30 @@ export function Contact() {
   )
 }
 
-// â”€â”€ BLOGS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ BLOGS PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 const BLOG_POSTS = [
   {
     id: 1, slug: 'how-to-spot-original-jersey',
     title: 'How to Spot an Original Jersey vs Fake',
     excerpt: 'With fakes flooding the market, here\'s your ultimate guide to identifying authentic football jerseys before you buy.',
     category: 'Buying Guide', date: 'March 28, 2025', readTime: '4 min read',
-    emoji: 'ðŸ”', color: '#E8001E',
+    emoji: 'Ã°Å¸â€Â', color: '#E8001E',
     img: 'https://images.unsplash.com/photo-1604671801908-6f0c6a092c05?w=600&auto=format&fit=crop&q=80'
   },
   {
     id: 2, slug: 'top-5-nigeria-jerseys-ever',
     title: 'Top 5 Nigeria Super Eagles Jerseys of All Time',
-    excerpt: 'From the iconic 1994 World Cup kit to the 2018 banger that broke the internet â€” we rank Nigeria\'s best jerseys ever.',
+    excerpt: 'From the iconic 1994 World Cup kit to the 2018 banger that broke the internet Ã¢â‚¬â€ we rank Nigeria\'s best jerseys ever.',
     category: 'Nigeria Football', date: 'March 20, 2025', readTime: '5 min read',
-    emoji: '🇳🇬', color: '#008751',
+    emoji: 'ðŸ‡³ðŸ‡¬', color: '#008751',
     img: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=600&auto=format&fit=crop&q=80'
   },
   {
     id: 3, slug: 'manchester-united-2025-kit-review',
-    title: 'Manchester United 2025/26 Kit â€” Full Review',
+    title: 'Manchester United 2025/26 Kit Ã¢â‚¬â€ Full Review',
     excerpt: 'Adidas and Man United dropped a banger. We got our hands on it before anyone else. Here\'s our full honest review.',
     category: 'Kit Review', date: 'March 14, 2025', readTime: '6 min read',
-    emoji: 'ðŸ”´', color: '#E8001E',
+    emoji: 'Ã°Å¸â€Â´', color: '#E8001E',
     img: 'https://images.unsplash.com/photo-1575361204480-aadea25e6e68?w=600&auto=format&fit=crop&q=80'
   },
   {
@@ -943,7 +959,7 @@ const BLOG_POSTS = [
     title: '5 Ways to Keep Your Jersey Looking Fresh',
     excerpt: 'Your jersey is an investment. Here\'s how to wash, store and maintain it so it lasts for years without cracking prints.',
     category: 'Care Tips', date: 'March 8, 2025', readTime: '3 min read',
-    emoji: 'ðŸ§º', color: '#6CABDD',
+    emoji: 'Ã°Å¸Â§Âº', color: '#6CABDD',
     img: 'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=600&auto=format&fit=crop&q=80'
   },
   {
@@ -951,15 +967,15 @@ const BLOG_POSTS = [
     title: 'Best Football Jerseys to Give as Gifts in Nigeria',
     excerpt: 'Looking for the perfect gift for a football fan? Here are the top jerseys that will make them scream with excitement.',
     category: 'Gift Guide', date: 'March 1, 2025', readTime: '4 min read',
-    emoji: 'ðŸŽ', color: '#FFD700',
+    emoji: 'Ã°Å¸Å½Â', color: '#FFD700',
     img: 'https://images.unsplash.com/photo-1540747913346-19212a4cf655?w=600&auto=format&fit=crop&q=80'
   },
   {
     id: 6, slug: 'barcelona-kit-history',
     title: 'Barcelona\'s Most Iconic Kits Through the Decades',
-    excerpt: 'From Johan Cruyff\'s era to the modern Pedri era â€” Barca have always had style. We break down the best kits in their history.',
+    excerpt: 'From Johan Cruyff\'s era to the modern Pedri era Ã¢â‚¬â€ Barca have always had style. We break down the best kits in their history.',
     category: 'Kit History', date: 'Feb 22, 2025', readTime: '7 min read',
-    emoji: 'ðŸ”µðŸ”´', color: '#A50044',
+    emoji: 'Ã°Å¸â€ÂµÃ°Å¸â€Â´', color: '#A50044',
     img: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600&auto=format&fit=crop&q=80'
   },
 ]
@@ -1056,7 +1072,7 @@ export function Blogs() {
                 }}
                   onMouseEnter={e => e.currentTarget.style.gap = '10px'}
                   onMouseLeave={e => e.currentTarget.style.gap = '6px'}
-                >Read More -></a>
+                >Read More &rarr;</a>
               </div>
             </article>
           ))}
@@ -1066,7 +1082,7 @@ export function Blogs() {
   )
 }
 
-// â”€â”€ GALLERY PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ GALLERY PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 const GALLERY_ITEMS = [
   { id:1,  title:'Man United Home 2025', tag:'Match Kit', img:'https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=600&auto=format&fit=crop&q=80' },
   { id:2,  title:'Chelsea Third Kit', tag:'Premium', img:'https://images.unsplash.com/photo-1518605368461-1ee7c5101a1d?w=600&auto=format&fit=crop&q=80' },
@@ -1105,7 +1121,7 @@ export function Gallery() {
         <div className="container">
           <p className="section-eyebrow">Our Collection</p>
           <h1 className="section-title">Jersey Gallery</h1>
-          <p className="section-sub">Browse our premium jersey collection â€” click any image to zoom in.</p>
+          <p className="section-sub">Browse our premium jersey collection Ã¢â‚¬â€ click any image to zoom in.</p>
         </div>
       </div>
 
@@ -1170,7 +1186,7 @@ export function Gallery() {
   )
 }
 
-// â”€â”€ CLUBS PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ CLUBS PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export function Clubs() {
   const [clubs, setClubs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -1258,7 +1274,7 @@ export function Clubs() {
                 marginTop: 12, fontSize: 11, color: 'var(--red)',
                 fontFamily: 'var(--font-display)', fontWeight: 800,
                 letterSpacing: '2px', textTransform: 'uppercase'
-              }}>View Collection -></div>
+              }}>View Collection &rarr;</div>
             </Link>
           ))}
         </div>
@@ -1267,7 +1283,7 @@ export function Clubs() {
   )
 }
 
-// â”€â”€ LOGIN PAGE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ LOGIN PAGE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export function Login() {
   const [form, setForm] = useState({ username: '', password: '' })
   const [loading, setLoading] = useState(false)
@@ -1311,18 +1327,18 @@ export function Login() {
               <div><label className="form-label">Username</label><input className="form-input" value={form.username} onChange={e => setForm(p => ({ ...p, username: e.target.value }))} placeholder="admin" required autoFocus /></div>
               <div><label className="form-label">Password</label><input className="form-input" type="password" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} placeholder="--------" required /></div>
               <button type="submit" disabled={loading} className="btn btn-red" style={{ justifyContent: 'center', marginTop: 8, width: '100%' }}>
-                {loading ? <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', animation: 'spin .7s linear infinite' }} /> Signing in...</> : 'Sign In ->'}
+                {loading ? <><div style={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', animation: 'spin .7s linear infinite' }} /> Signing in...</> : <>Sign In &rarr;</>}
               </button>
             </form>
           </div>
         </div>
-        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: 'var(--muted)' }}><Link to="/" style={{ color: 'var(--red)', textDecoration: 'none' }}>â† Back to store</Link></p>
+        <p style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: 'var(--muted)' }}><Link to="/" style={{ color: 'var(--red)', textDecoration: 'none' }}>Ã¢â€ Â Back to store</Link></p>
       </div>
     </div>
   )
 }
 
-// â”€â”€ ADMIN DASHBOARD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ ADMIN DASHBOARD Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 function AdminNav({ onLogout, lightMode, toggleLight }) {
     const NAV=[
@@ -1369,7 +1385,7 @@ function AdminNav({ onLogout, lightMode, toggleLight }) {
           style={{display:'flex',alignItems:'center',gap:8,background: lightMode ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)',border:'1px solid var(--border)',color:'var(--muted)',cursor:'pointer',fontSize:12,fontFamily:'var(--font-body)',padding:'9px 14px',width:'100%',borderRadius:8,transition:'all .2s',marginBottom:8}}
           onMouseEnter={e=>{e.currentTarget.style.color=lightMode?'#111':'var(--white)'}}
           onMouseLeave={e=>{e.currentTarget.style.color='var(--muted)'}}>
-          {lightMode ? 'ðŸŒ™ Dark Mode' : 'â˜€ï¸ Light Mode'}
+          {lightMode ? 'Ã°Å¸Å’â„¢ Dark Mode' : 'Ã¢Ëœâ‚¬Ã¯Â¸Â Light Mode'}
         </button>
         <button onClick={onLogout} style={{display:'flex',alignItems:'center',gap:10,background:'none',border:'1px solid var(--border)',color:'var(--muted)',cursor:'pointer',fontSize:13,fontFamily:'var(--font-body)',padding:'10px 14px',width:'100%',borderRadius:8,transition:'all .2s'}}
           onMouseEnter={e=>{e.currentTarget.style.color='var(--red)';e.currentTarget.style.borderColor='rgba(232,0,30,0.4)'}}
@@ -1402,7 +1418,7 @@ function AdminNav({ onLogout, lightMode, toggleLight }) {
       {mobileOpen && (
         <div style={{position:'fixed',inset:0,zIndex:300,display:'flex'}} onClick={()=>setMobileOpen(false)}>
           <div style={{position:'absolute',inset:0,background:'rgba(0,0,0,0.4)',backdropFilter:'blur(2px)'}}/>
-          <aside onClick={e=>e.stopPropagation()} style={{width:260,background:'var(--dark)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',height:'100%',position:'relative',zIndex:1,animation:'slideInRight .3s cubic-bezier(0.16,1,0.3,1)'}}>
+          <aside onClick={e=>e.stopPropagation()} style={{width:220,background:'var(--dark)',borderRight:'1px solid var(--border)',display:'flex',flexDirection:'column',height:'100%',position:'relative',zIndex:1,animation:'slideInRight .3s cubic-bezier(0.16,1,0.3,1)'}}>
             <button onClick={()=>setMobileOpen(false)} style={{position:'absolute',top:16,right:16,background:'none',border:'none',color:'var(--muted)',cursor:'pointer',padding:4}}><FiX size={20}/></button>
             {sidebarContent}
           </aside>
@@ -1456,13 +1472,22 @@ export function AdminDashboard() {
         const [resJ, resO, resT] = await Promise.all([
           api.get('/api/jerseys/'),
           api.get('/api/orders/admin/'),
-          api.get('/api/brand/tiktok/')
+          api.get('/api/brand/tiktok/').catch(() => ({ data: [] }))
         ])
-        setJerseys(resJ.data.results || resJ.data)
-        setOrders(resO.data.results || resO.data)
-        setTiktok(resT.data.results || resT.data)
+        
+        const jData = resJ.data?.results || resJ.data || []
+        const oData = resO.data?.results || resO.data || []
+        const tData = resT.data?.results || resT.data || []
+        
+        setJerseys(Array.isArray(jData) ? jData : [])
+        setOrders(Array.isArray(oData) ? oData : [])
+        setTiktok(Array.isArray(tData) ? tData : [])
       } catch (err) {
+        console.error('Admin data fetch error:', err)
         toast.error('Failed to load admin data')
+        setJerseys([])
+        setOrders([])
+        setTiktok([])
       } finally {
         setLoading(false)
       }
@@ -1514,23 +1539,57 @@ export function AdminDashboard() {
 
   const STATS = [
     { label: 'Total Jerseys', val: jerseys.length, icon: '', color: 'rgba(232,0,30,0.12)', border: 'rgba(232,0,30,0.3)' },
-    { label: 'Total Orders', val: orders.length, icon: 'ðŸ“¦', color: 'rgba(255,184,0,0.12)', border: 'rgba(255,184,0,0.3)' },
-    { label: 'Revenue', val: formatPrice(orders.filter(o=>o.payment_status).reduce((a,b)=>a+Number(b.total),0)), icon: 'ðŸ’°', color: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)' },
-    { label: 'Pending', val: orders.filter(o=>o.status==='Pending').length, icon: 'â³', color: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)' },
+    { label: 'Total Orders', val: orders.length, icon: 'Ã°Å¸â€œÂ¦', color: 'rgba(255,184,0,0.12)', border: 'rgba(255,184,0,0.3)' },
+    { label: 'Revenue', val: formatPrice(orders.filter(o=>o.payment_status).reduce((a,b)=>a+Number(b.total),0)), icon: 'Ã°Å¸â€™Â°', color: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.3)' },
+    { label: 'Pending', val: orders.filter(o=>o.status==='Pending').length, icon: 'Ã¢ÂÂ³', color: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.3)' },
   ]
 
   const handleImgUpload=(e)=>{
     const files=Array.from(e.target.files)
-    setImages(prev=>[...prev,...files.map(f=>({url:URL.createObjectURL(f),name:f.name}))])
+    // Store both raw File object for API and URL for preview
+    setImages(prev=>[...prev,...files.map(f=>({file:f, url:URL.createObjectURL(f), name:f.name}))])
   }
 
-  const saveJersey=()=>{
-    if(!form.title||!form.price)return
-    setJerseys(p=>[{...form,id:Date.now(),slug:form.title.toLowerCase().replace(/\s+/g,'-'),images,price:Number(form.price),sizes:{XS:5,S:8,M:10,L:8,XL:5,XXL:2},rating:0,reviews:0,is_new:true,old_price:null},...p])
-    setShowAdd(false)
-    setForm({title:'',club:'',category:'Home Kits',price:'',badge:'',is_featured:false})
-    setImages([])
-    toast.success('Jersey added successfully!')
+  const saveJersey = async () => {
+    if(!form.title || !form.price) {
+      toast.error('Title and Price are required')
+      return
+    }
+    
+    try {
+      const formData = new FormData()
+      formData.append('title', form.title)
+      formData.append('price', form.price)
+      formData.append('badge', form.badge || '')
+      formData.append('is_featured', form.is_featured)
+      formData.append('is_new', true)
+      formData.append('description', 'Official high-quality jersey. Nationwide delivery.')
+      
+      // Map Club and Category names to IDs
+      const clubObj = clubs.find(c => c.name === form.club)
+      const catObj = categories.find(c => c.name === form.category)
+      
+      if (clubObj) formData.append('club_id', clubObj.id)
+      if (catObj) formData.append('category_id', catObj.id)
+
+      // Add all files
+      images.forEach(img => {
+        if (img.file) formData.append('images', img.file)
+      })
+
+      const res = await api.post('/api/jerseys/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      setJerseys(p => [res.data, ...p])
+      setShowAdd(false)
+      setForm({title:'', club:'', category:'', price:'', badge:'', is_featured:false})
+      setImages([])
+      toast.success('Jersey added to server successfully!')
+    } catch (err) {
+      console.error(err)
+      toast.error(err.response?.data?.detail || 'Failed to save to server')
+    }
   }
 
   const isTikTok = pathname === '/admin/tiktok'
@@ -1606,7 +1665,7 @@ export function AdminDashboard() {
               <div style={{background:'var(--dark2)',border:'1px solid var(--border)',borderRadius:12,overflow:'hidden'}}>
                 <div style={{padding:20,borderBottom:'1px solid var(--border)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                    <h3 style={{margin:0,fontSize:16,textTransform:'uppercase',fontFamily:'var(--font-display)'}}>Recent Orders</h3>
-                   <Link to="/admin/orders" style={{fontSize:12,color:'var(--red)',textDecoration:'none'}}>View All -></Link>
+                   <Link to="/admin/orders" style={{fontSize:12,color:'var(--red)',textDecoration:'none'}}>View All &rarr;</Link>
                 </div>
                 <div style={{padding:15}}>
                    {orders.slice(0,5).map(o => (
@@ -1651,7 +1710,7 @@ export function AdminDashboard() {
                   onMouseEnter={e=>e.currentTarget.style.background='rgba(232,0,30,0.04)'}
                   onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                   <div style={{display:'flex',gap:14,alignItems:'center'}}>
-                    <div style={{width:42,height:42,background:'rgba(232,0,30,0.1)',borderRadius:8,border:'1px solid rgba(232,0,30,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>ðŸ“¦</div>
+                    <div style={{width:42,height:42,background:'rgba(232,0,30,0.1)',borderRadius:8,border:'1px solid rgba(232,0,30,0.2)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}}>Ã°Å¸â€œÂ¦</div>
                     <div>
                       <p style={{fontWeight:700,fontSize:14,color:'var(--white)'}}>{o.first_name} {o.last_name}</p>
                       <p style={{fontSize:11,color:'var(--muted)',marginTop:2}}>{o.email} {o.city ? `- ${o.city}` : ''}</p>
@@ -1676,8 +1735,8 @@ export function AdminDashboard() {
                     onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='translateY(0)';e.currentTarget.style.boxShadow='none'}}>
                     <div style={{height:160,background:'var(--dark3)',position:'relative',overflow:'hidden'}}>
                       {j.images?.[0]
-                        ? <img src={j.images[0].image || j.images[0]} style={{width:'100%',height:'100%',objectFit:'cover'}} alt={j.title}/>
-                        : <div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:40,opacity:.3}}></div>}
+                        ? <img src={j.images[0].image || j.images[0].url || j.images[0]} style={{width:'100%',height:'100%',objectFit:'cover'}} alt={j.title}/>
+                        : <div style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:40,opacity:.3}}>👕</div>}
                       <div style={{position:'absolute',inset:0,background:'linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 60%)',pointerEvents:'none'}}/>
                       {j.badge && <span style={{position:'absolute',top:10,left:10,background:j.badge==='New'?'var(--red)':j.badge==='Sale'?'var(--gold)':j.badge==='Hot'?'#FF8C00':'#555',color:j.badge==='Sale'?'black':'white',fontSize:9,fontWeight:700,letterSpacing:'1px',textTransform:'uppercase',padding:'3px 8px',borderRadius:20}}>{j.badge}</span>}
                       <div style={{position:'absolute',top:10,right:10,display:'flex',gap:5}}>
@@ -1717,7 +1776,7 @@ export function AdminDashboard() {
                           <td style={{padding:'12px 16px'}}>
                             <div style={{display:'flex',alignItems:'center',gap:10}}>
                               <div style={{width:44,height:44,borderRadius:6,background:'var(--dark3)',flexShrink:0,overflow:'hidden',border:'1px solid var(--border)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}}>
-                                {j.images?.[0]?<img src={j.images[0].image||j.images[0]} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:''}
+                                {j.images?.[0]?<img src={j.images[0].image||j.images[0].url||j.images[0]} style={{width:'100%',height:'100%',objectFit:'cover'}}/>:'👕'}
                               </div>
                               <p style={{fontSize:12,fontWeight:600,color:'var(--off-white)',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:160}}>{j.title}</p>
                             </div>
@@ -1762,7 +1821,7 @@ export function AdminDashboard() {
                      {tiktokForm.thumbnail ? tiktokForm.thumbnail.name : 'Click to upload thumbnail'}
                    </label>
                  </div>
-                 <button onClick={saveTiktok} className="btn btn-red" style={{marginTop:8,justifyContent:'center'}}>Save Video -></button>
+                 <button onClick={saveTiktok} className="btn btn-red" style={{marginTop:8,justifyContent:'center'}}>Save Video &rarr;</button>
                </div>
              </div>
           </div>
@@ -1826,7 +1885,7 @@ export function AdminDashboard() {
   )
 }
 
-// â”€â”€ ADMIN ORDER DETAIL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬ ADMIN ORDER DETAIL Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 export function AdminOrderDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
@@ -1915,4 +1974,5 @@ export function AdminOrderDetail() {
     </div>
   )
 }
+
 

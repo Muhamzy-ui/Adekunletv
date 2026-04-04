@@ -47,8 +47,8 @@ function JerseyCard({ jersey }) {
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         textDecoration: 'none',
       }}>
-        {jersey.images?.[0] ? (
-          <img src={jersey.images[0]} alt={jersey.title}
+        { (jersey.primary_image || (jersey.images?.[0]?.image) || (typeof jersey.images?.[0] === 'string' ? jersey.images[0] : null)) ? (
+          <img src={jersey.primary_image || (jersey.images?.[0]?.image) || jersey.images[0]} alt={jersey.title}
             style={{ width:'100%', height:'100%', objectFit:'cover',
               transition: 'transform 0.6s var(--ease)',
               transform: hovered ? 'scale(1.08)' : 'scale(1)' }}
@@ -282,11 +282,18 @@ export default function Home() {
             inset: 0;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
+            transform-style: preserve-3d;
+            -webkit-transform-style: preserve-3d;
             border-radius: 20px;
             overflow: hidden;
           }
+          .flip-card-front {
+            transform: translateZ(1px);
+            -webkit-transform: translateZ(1px);
+          }
           .flip-card-back {
-            transform: rotateY(180deg);
+            transform: rotateY(180deg) translateZ(1px);
+            -webkit-transform: rotateY(180deg) translateZ(1px);
           }
           @keyframes borderGlow {
             0%, 100% { box-shadow: 0 0 20px rgba(232,0,30,0.3), 0 0 60px rgba(232,0,30,0.1); }
@@ -298,6 +305,14 @@ export default function Home() {
           }
           .flip-card-front {
             animation: borderGlow 3s ease-in-out infinite;
+          }
+          @media (max-width: 768px) {
+            .tiktok-scroll-item {
+              min-width: 180px !important;
+            }
+            .tiktok-video-thumbnail {
+              height: 280px !important;
+            }
           }
         `}</style>
 
@@ -548,20 +563,26 @@ export default function Home() {
               </div>
 
               {/* Mini cards */}
-              {jerseys.slice(1, 4).map(j => (
-                <Link key={j.id} to={`/shop/${j.slug}`} style={{
-                  background:'var(--dark2)', border:'1px solid var(--border)',
-                  borderRadius:10, padding:16, textDecoration:'none',
-                  transition:'all 0.3s',
-                }}
-                onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(232,0,30,0.4)';e.currentTarget.style.transform='translateY(-4px)'}}
-                onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='translateY(0)'}}>
-                  <div style={{ fontSize:10, color:'var(--red)', fontFamily:'var(--font-display)', letterSpacing:'2px', marginBottom:4 }}>{typeof j.club === 'object' ? j.club.name : j.club}</div>
-                  <div style={{ fontFamily:'var(--font-display)', fontSize:14, fontWeight:800, color:'var(--white)', textTransform:'uppercase', lineHeight:1.2, marginBottom:8 }}>{j.title.split(' ').slice(0,3).join(' ')}</div>
-                  <div className="price" style={{ fontSize:20, color: j.old_price ? 'var(--red)' : 'var(--white)' }}>{formatPrice(j.price)}</div>
-                  {j.badge && <span className="badge badge-gold" style={{ marginTop:8, display:'inline-flex' }}>{j.badge}</span>}
-                </Link>
-              ))}
+              {jerseys.slice(1, 4).map(j => {
+                const img = j.primary_image || (j.images?.[0]?.image) || (typeof j.images?.[0] === 'string' ? j.images[0] : null);
+                return (
+                  <Link key={j.id} to={`/shop/${j.slug}`} style={{
+                    background:'var(--dark2)', border:'1px solid var(--border)',
+                    borderRadius:10, padding:16, textDecoration:'none',
+                    transition:'all 0.3s',
+                    display:'flex', flexDirection:'column'
+                  }}
+                  onMouseEnter={e=>{e.currentTarget.style.borderColor='rgba(232,0,30,0.4)';e.currentTarget.style.transform='translateY(-4px)'}}
+                  onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border)';e.currentTarget.style.transform='translateY(0)'}}>
+                    <div style={{height:80, background:'var(--dark3)', borderRadius:6, marginBottom:10, overflow:'hidden', display:'flex', alignItems:'center', justifyContent:'center'}}>
+                      {img ? <img src={img} style={{width:'100%', height:'100%', objectFit:'cover'}}/> : '👕'}
+                    </div>
+                    <div style={{ fontSize:10, color:'var(--red)', fontFamily:'var(--font-display)', letterSpacing:'2px', marginBottom:4 }}>{j.club_name || (typeof j.club === 'object' ? j.club.name : j.club)}</div>
+                    <div style={{ fontFamily:'var(--font-display)', fontSize:13, fontWeight:800, color:'var(--white)', textTransform:'uppercase', lineHeight:1.2, marginBottom:8 }}>{j.title.split(' ').slice(0,3).join(' ')}</div>
+                    <div className="price" style={{ fontSize:18, color: j.old_price ? 'var(--red)' : 'var(--white)', marginTop:'auto' }}>{formatPrice(j.price)}</div>
+                  </Link>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -775,7 +796,7 @@ export default function Home() {
                   display:'block', minWidth: 260
                 }}>
                 {/* Video thumbnail */}
-                <div style={{
+                <div className="tiktok-video-thumbnail" style={{
                   aspectRatio:'9/14', background:`linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.6)), url(${v.thumbnail || 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=500&auto=format&fit=crop&q=80'}) center/cover`,
                   display:'flex', alignItems:'center', justifyContent:'center',
                   position:'relative', flexDirection:'column', gap:8, height: 350

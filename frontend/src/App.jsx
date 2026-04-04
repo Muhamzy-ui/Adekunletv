@@ -27,23 +27,25 @@ export default function App() {
       <ScrollTop />
       <Toaster position="top-right" toastOptions={{ style: { background: '#161616', color: '#F2F2F2', border: '1px solid rgba(232,0,30,0.3)', fontFamily: 'Barlow, sans-serif', fontSize: 14 } }} />
       {!isAdmin && <Navbar />}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/shop" element={<Shop />} />
-        <Route path="/clubs" element={<Clubs />} />
-        <Route path="/shop/:slug" element={<JerseyDetail />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order-success" element={<OrderSuccess />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/blogs" element={<Blogs />} />
-        <Route path="/gallery" element={<Gallery />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
-        <Route path="/admin/*" element={<AdminDashboard />} />
-      </Routes>
+      <div style={{ paddingTop: isAdmin ? 0 : 100 }}>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/shop" element={<Shop />} />
+          <Route path="/clubs" element={<Clubs />} />
+          <Route path="/shop/:slug" element={<JerseyDetail />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order-success" element={<OrderSuccess />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/orders/:id" element={<AdminOrderDetail />} />
+          <Route path="/admin/*" element={<AdminDashboard />} />
+        </Routes>
+      </div>
       {!isAdmin && <Footer />}
       {!isAdmin && <BottomNav />}
       {!isAdmin && <WhatsAppFloat />}
