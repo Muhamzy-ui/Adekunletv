@@ -186,7 +186,7 @@ export function Shop() {
     if(sort==='price_desc') j.sort((a,b)=>b.price-a.price)
     if(sort==='popular') j.sort((a,b)=>b.reviews-a.reviews)
     return j
-  },[search,club,cat,sort,minP,maxP])
+  },[jerseys, search, club, cat, sort, minP, maxP])
 
   if (loading) return (
     <div style={{ height: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 20 }}>
