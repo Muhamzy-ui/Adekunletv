@@ -35,6 +35,7 @@ class JerseyViewSet(viewsets.ModelViewSet):
     ordering_fields = ['price', 'created_at', 'rating', 'review_count']
     ordering       = ['-created_at']
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    lookup_field   = 'slug'
 
     def get_serializer_class(self):
         if self.action == 'list':

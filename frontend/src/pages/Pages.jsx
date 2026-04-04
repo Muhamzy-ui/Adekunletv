@@ -11,6 +11,17 @@ import { useCart } from '../context/CartContext'
 import api from '../utils/api'
 import toast from 'react-hot-toast'
 
+const SideLabel = ({ children }) => (
+  <p style={{
+    fontSize: 11, fontFamily: 'var(--font-display)', fontWeight: 700, 
+    letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--muted)',
+    marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8
+  }}>
+    {children}
+    <span style={{flex:1, height:1, background:'var(--border)', opacity:0.5}}/>
+  </p>
+)
+
 function ShopJerseyCard({ jersey }) {
   const { addItem } = useCart()
   const [size, setSize] = useState('')
@@ -115,6 +126,13 @@ export function Shop() {
   const [maxP, setMaxP] = useState('')
   const [showFilter, setShowFilter] = useState(false)
 
+  // Sync state with Search Params when they change (e.g. Navigating from Navbar)
+  useEffect(() => {
+    setSearch(params.get('search') || '')
+    setClub(params.get('club') || 'All')
+    setCat(params.get('category') || 'All')
+  }, [params])
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -149,8 +167,8 @@ export function Shop() {
        return cName===club
      })
      if(cat!=='All') j=j.filter(x=>{
-       const catName = (x.category && typeof x.category === 'object') ? (x.category.name || '') : (x.category || '');
-       return catName===cat
+       const catObj = (x.category && typeof x.category === 'object') ? x.category : { name: x.category_name || x.category || '', slug: x.category_slug || '' };
+       return catObj.name === cat || catObj.slug === cat;
      })
     if(minP) j=j.filter(x=>x.price>=Number(minP))
     if(maxP) j=j.filter(x=>x.price<=Number(maxP))
