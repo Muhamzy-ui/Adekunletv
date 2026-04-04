@@ -9,6 +9,13 @@ import { useCart } from '../context/CartContext'
 import api from '../utils/api'
 import toast from 'react-hot-toast'
 
+const getImageUrl = (url) => {
+  if (!url) return null
+  if (url.startsWith('http')) return url
+  const base = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+  return `${base.replace(/\/$/, '')}${url.startsWith('/') ? url : '/' + url}`
+}
+
 /* ── Jersey Card ─────────────────────────────── */
 function JerseyCard({ jersey }) {
   const { addItem } = useCart()
@@ -48,7 +55,7 @@ function JerseyCard({ jersey }) {
         textDecoration: 'none',
       }}>
         { (jersey.primary_image || (jersey.images?.[0]?.image) || (typeof jersey.images?.[0] === 'string' ? jersey.images[0] : null)) ? (
-          <img src={jersey.primary_image || (jersey.images?.[0]?.image) || jersey.images[0]} alt={jersey.title}
+          <img src={getImageUrl(jersey.primary_image || (jersey.images?.[0]?.image) || jersey.images[0])} alt={jersey.title}
             style={{ width:'100%', height:'100%', objectFit:'cover',
               transition: 'transform 0.6s var(--ease)',
               transform: hovered ? 'scale(1.08)' : 'scale(1)' }}

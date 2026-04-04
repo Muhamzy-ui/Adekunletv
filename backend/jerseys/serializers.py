@@ -4,10 +4,17 @@ from .models import Jersey, JerseyImage, Club, Category, Review
 
 class ClubSerializer(serializers.ModelSerializer):
     jersey_count = serializers.SerializerMethodField()
+    logo         = serializers.SerializerMethodField()
 
     class Meta:
         model  = Club
         fields = ['id', 'name', 'slug', 'country', 'logo', 'color', 'jersey_count']
+
+    def get_logo(self, obj):
+        if obj.logo:
+            req = self.context.get('request')
+            return req.build_absolute_uri(obj.logo.url) if req else obj.logo.url
+        return None
 
     def get_jersey_count(self, obj):
         return obj.jerseys.filter(is_active=True).count()
@@ -25,9 +32,17 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class JerseyImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+    
     class Meta:
         model  = JerseyImage
         fields = ['id', 'image', 'is_primary', 'order']
+
+    def get_image(self, obj):
+        if obj.image:
+            req = self.context.get('request')
+            return req.build_absolute_uri(obj.image.url) if req else obj.image.url
+        return None
 
 
 class ReviewSerializer(serializers.ModelSerializer):

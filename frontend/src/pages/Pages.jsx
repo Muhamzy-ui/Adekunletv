@@ -22,6 +22,14 @@ const SideLabel = ({ children }) => (
   </p>
 )
 
+const getImageUrl = (url) => {
+  if (!url) return null
+  if (url.startsWith('http')) return url
+  // Handle relative paths from backend
+  const base = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+  return `${base.replace(/\/$/, '')}${url.startsWith('/') ? url : '/' + url}`
+}
+
 function ShopJerseyCard({ jersey }) {
   const { addItem } = useCart()
   const [size, setSize] = useState('')
@@ -30,7 +38,7 @@ function ShopJerseyCard({ jersey }) {
   const hasOld = !!jersey.old_price
 
   // Fix image source: favor primary_image, then images[0].image, then images[0]
-  const imageSrc = jersey.primary_image || (jersey.images?.[0]?.image) || (typeof jersey.images?.[0] === 'string' ? jersey.images[0] : null)
+  const imageSrc = getImageUrl(jersey.primary_image || (jersey.images?.[0]?.image) || (typeof jersey.images?.[0] === 'string' ? jersey.images[0] : null))
 
   return (
     <div style={{background:'var(--dark2)',border:'1px solid var(--border)',borderRadius:8,overflow:'hidden',display:'flex',flexDirection:'column',transition:'all 0.3s'}}
@@ -163,12 +171,14 @@ export function Shop() {
        return x.title?.toLowerCase().includes(search.toLowerCase())||cName.toLowerCase().includes(search.toLowerCase())
      })
      if(club!=='All') j=j.filter(x=>{
-       const cName = (x.club && typeof x.club === 'object') ? (x.club.name || '') : (x.club || '');
-       return cName===club
+       const clubObj = (x.club && typeof x.club === 'object') ? x.club : { name: x.club_name || x.club || '', slug: x.club_slug || '' };
+       const target = club.toLowerCase()
+       return clubObj.name?.toLowerCase() === target || clubObj.slug?.toLowerCase() === target
      })
      if(cat!=='All') j=j.filter(x=>{
        const catObj = (x.category && typeof x.category === 'object') ? x.category : { name: x.category_name || x.category || '', slug: x.category_slug || '' };
-       return catObj.name === cat || catObj.slug === cat;
+       const target = cat.toLowerCase()
+       return catObj.name?.toLowerCase() === target || catObj.slug?.toLowerCase() === target
      })
     if(minP) j=j.filter(x=>x.price>=Number(minP))
     if(maxP) j=j.filter(x=>x.price<=Number(maxP))
@@ -396,7 +406,7 @@ export function JerseyDetail() {
           <div>
             <div style={{height:480,background:'var(--dark2)',border:'1px solid var(--border)',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:12,position:'relative',overflow:'hidden'}}>
               { (jersey.images?.[activeImg]?.image || jersey.images?.[activeImg]?.url || (typeof jersey.images?.[activeImg] === 'string' ? jersey.images?.[activeImg] : null) || jersey.primary_image)
-                ? <img src={jersey.images?.[activeImg]?.image || jersey.images?.[activeImg]?.url || (typeof jersey.images?.[activeImg] === 'string' ? jersey.images[activeImg] : jersey.primary_image)} alt={jersey.title} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                ? <img src={getImageUrl(jersey.images?.[activeImg]?.image || jersey.images?.[activeImg]?.url || (typeof jersey.images?.[activeImg] === 'string' ? jersey.images[activeImg] : jersey.primary_image))} alt={jersey.title} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
                 : <svg viewBox="0 0 200 220" style={{width:'55%',filter:'drop-shadow(0 16px 40px rgba(232,0,30,0.3))'}}>
                     <path d="M30 55 L10 90 L40 98 L40 200 L160 200 L160 98 L190 90 L170 55 L135 44 Q100 25 65 44 Z"
                       fill={(typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)) === 'Nigeria' ? '#008751' : (typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club))?.includes('United') || (typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)) === 'Liverpool' ? '#C8102E' : (typeof jersey.club === 'object' ? jersey.club.name : (jersey.club_name || jersey.club)) === 'Chelsea' ? '#034694' : '#444'}
@@ -413,7 +423,7 @@ export function JerseyDetail() {
               { (jersey.images && jersey.images.length > 0 ? jersey.images : [jersey.primary_image]).map((img, i)=>(
                 <div key={i} onClick={()=>setActiveImg(i)} style={{flexShrink:0,width:80,height:80,background:'var(--dark2)',border:`1px solid ${activeImg===i?'var(--red)':'var(--border)'}`,borderRadius:6,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',overflow:'hidden',transition:'border-color .2s'}}>
                     { (img?.image || img?.url || (typeof img === 'string' ? img : null)) 
-                      ? <img src={img?.image || img?.url || img} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                      ? <img src={getImageUrl(img?.image || img?.url || img)} style={{width:'100%', height:'100%', objectFit:'cover'}} />
                       : '👕'
                     }
                 </div>
@@ -578,7 +588,7 @@ export function Cart() {
                 {/* Photo */}
                 <div style={{width:80,height:80,background:'var(--dark3)',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'center',fontSize:32,flexShrink:0,border:'1px solid var(--border)',overflow:'hidden'}}>
                     {(item.primary_image || item.images?.[0]?.image || (typeof item.images?.[0] === 'string' ? item.images[0] : null)) 
-                      ? <img src={item.primary_image || item.images?.[0]?.image || item.images[0]} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                      ? <img src={getImageUrl(item.primary_image || item.images?.[0]?.image || item.images[0])} style={{width:'100%', height:'100%', objectFit:'cover'}} />
                       : '👕'
                     }
                 </div>
