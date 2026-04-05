@@ -252,6 +252,11 @@ h5 {
   }
 }
 
+img {
+  animation: fadeIn 0.8s var(--ease-out) forwards;
+  will-change: opacity;
+}
+
 /* ── Red accent text ── */
 .red {
   color: var(--red);

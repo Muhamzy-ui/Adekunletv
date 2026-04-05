@@ -11,7 +11,12 @@ import toast from 'react-hot-toast'
 
 const getImageUrl = (url) => {
   if (!url) return null
-  if (url.startsWith('http')) return url
+  if (url.startsWith('http')) {
+    if (url.includes('res.cloudinary.com')) {
+      return url.replace('/upload/', '/upload/f_auto,q_auto:best,w_1000/')
+    }
+    return url
+  }
   const base = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
   return `${base.replace(/\/$/, '')}${url.startsWith('/') ? url : '/' + url}`
 }

@@ -24,7 +24,15 @@ const SideLabel = ({ children }) => (
 
 const getImageUrl = (url) => {
   if (!url) return null
-  if (url.startsWith('http')) return url
+  if (url.startsWith('http')) {
+    // If it's a Cloudinary URL, inject transformations for performance without quality loss
+    if (url.includes('res.cloudinary.com')) {
+      // Inject q_auto:best (highest automatic quality) and f_auto (best format for browser)
+      // We also add w_1000 to ensure we don't download massive original raw files
+      return url.replace('/upload/', '/upload/f_auto,q_auto:best,w_1000/')
+    }
+    return url
+  }
   // Handle relative paths from backend
   const base = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
   return `${base.replace(/\/$/, '')}${url.startsWith('/') ? url : '/' + url}`
